@@ -1,11 +1,23 @@
-metagpt==0.8.1
-fastapi
-uvicorn[standard]
+# Core framework
+metagpt==0.8.2
+fastapi==0.136.1
+uvicorn[standard]==0.46.0
 python-multipart
 python-dotenv
-chromadb
-llama-index-vector-stores-chroma
+
+# RAG + Vector store
+chromadb==1.5.8
+llama-index-core==0.12.42
+llama-index-vector-stores-chroma==0.4.2
+llama-index-embeddings-huggingface==0.7.0
 pypdf
+
+# Pinned for compatibility
+pydantic==2.9.2
+pydantic-settings==2.8.1
+aiohttp==3.9.5
+multidict==6.7.1
+
+# Optional
 streamlit
-pydantic>=2.0,<3.0
 faiss-cpu==1.7.4; sys_platform != "win32"
