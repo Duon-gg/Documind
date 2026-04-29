@@ -1,4 +1,4 @@
-metagpt>=0.8.0
+metagpt==0.8.1
 fastapi
 uvicorn[standard]
 python-multipart
@@ -7,3 +7,4 @@ chromadb
 llama-index-vector-stores-chroma
 pypdf
 streamlit
+faiss-cpu==1.7.4; sys_platform != "win32"
