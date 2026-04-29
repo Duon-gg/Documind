@@ -147,6 +147,8 @@ uvicorn main:app --reload --port 8000
 
 Open **http://localhost:8000** → Click **⚡ Build Knowledge Base** → Start chatting!
 
+> **⚠️ Note:** This app requires ~2GB RAM due to PyTorch + MetaGPT + ChromaDB embeddings. Best run locally or on a paid cloud instance (Render free tier is insufficient).
+
 ## 📁 Project Structure
 
 ```
