@@ -12,9 +12,8 @@ storage/*
 !storage/.gitkeep
 
 # Docs (keep demo.gif)
-docs/
+docs/*
 !docs/demo.gif
-docs/frames/
 
 # IDE
 .vscode/
@@ -30,6 +29,13 @@ logs/
 metagpt/
 agentops.log
 config2.yaml
+*.log
+
+# Deploy (not needed in repo)
+Dockerfile
+render.yaml
+runtime.txt
+.python-version
 
 # Dev tools
 create_demo.py
