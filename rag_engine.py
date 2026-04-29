@@ -11,8 +11,8 @@ from pypdf import PdfReader
 import asyncio
 from pathlib import Path
 
-DATA_DIR = Path("E:/projects/documind/data")
-STORAGE_DIR = Path("E:/projects/documind/storage")
+DATA_DIR = Path(__file__).parent.resolve() / "data"
+STORAGE_DIR = Path(__file__).parent.resolve() / "storage"
 
 # Local embedding model (free, no API key needed)
 EMBED_MODEL = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")

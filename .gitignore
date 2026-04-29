@@ -5,9 +5,11 @@ venv/
 __pycache__/
 *.pyc
 
-# Data & Storage
-data/
-storage/
+# Data & Storage (keep dirs via .gitkeep)
+data/*
+!data/.gitkeep
+storage/*
+!storage/.gitkeep
 
 # Docs (keep demo.gif)
 docs/

@@ -5,12 +5,12 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, "E:/projects/documind")
+sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
 from rag_engine import RAGEngine
 from agents.actions import AnalyzeQuery, RetrieveAndAnswer, ReviewAnswer, SummarizeDocument
 
-DATA_DIR = Path("E:/projects/documind/data")
+DATA_DIR = Path(__file__).parent.resolve() / "data"
 
 # Token estimation: ~1 token per 4 chars (English), ~1 token per 2 chars (Vietnamese/CJK)
 def estimate_tokens(text: str) -> int:

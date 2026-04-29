@@ -5,16 +5,17 @@ import json
 import shutil
 import time
 import re
+import sys
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
-DATA_DIR = Path("E:/projects/documind/data")
-STORAGE_DIR = Path("E:/projects/documind/storage")
-VENV_PYTHON = Path("E:/projects/documind-env/Scripts/python.exe")
-PROJECT_DIR = Path("E:/projects/documind")
+PROJECT_DIR = Path(__file__).parent.resolve()
+DATA_DIR = PROJECT_DIR / "data"
+STORAGE_DIR = PROJECT_DIR / "storage"
+VENV_PYTHON = sys.executable  # Use current Python interpreter
 
 GROQ_DAILY_LIMIT = 100_000  # Groq free tier TPD
 
@@ -98,7 +99,7 @@ async def upload(files: list[UploadFile] = File(...)):
 @app.post("/build")
 async def build():
     t0 = time.time()
-    script = 'import sys; sys.path.insert(0,"E:/projects/documind"); from rag_engine import RAGEngine; e=RAGEngine(); e.build_engine(); print("__OK__")'
+    script = f'import sys; sys.path.insert(0,"{PROJECT_DIR.as_posix()}"); from rag_engine import RAGEngine; e=RAGEngine(); e.build_engine(); print("__OK__")'
     try:
         r = subprocess.run([str(VENV_PYTHON), "-c", script], capture_output=True, text=True, cwd=str(PROJECT_DIR), timeout=300)
         elapsed = round(time.time() - t0, 2)

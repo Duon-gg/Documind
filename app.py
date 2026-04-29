@@ -6,10 +6,10 @@ import json
 import sys
 from pathlib import Path
 
-DATA_DIR = Path("E:/projects/documind/data")
-STORAGE_DIR = Path("E:/projects/documind/storage")
-VENV_PYTHON = Path("E:/projects/documind-env/Scripts/python.exe")
-PROJECT_DIR = Path("E:/projects/documind")
+PROJECT_DIR = Path(__file__).parent.resolve()
+DATA_DIR = PROJECT_DIR / "data"
+STORAGE_DIR = PROJECT_DIR / "storage"
+VENV_PYTHON = sys.executable
 
 # ── Page Config ──────────────────────────────────────────────
 st.set_page_config(
@@ -160,9 +160,9 @@ def run_query_subprocess(question: str) -> dict:
 
 def run_build_subprocess() -> bool:
     """Build the knowledge base in a separate process."""
-    script = """
+    script = f"""
 import sys
-sys.path.insert(0, "E:/projects/documind")
+sys.path.insert(0, "{PROJECT_DIR.as_posix()}")
 from rag_engine import RAGEngine
 engine = RAGEngine()
 engine.build_engine()

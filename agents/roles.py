@@ -10,7 +10,7 @@ from metagpt.logs import logger
 from agents.actions import AnalyzeQuery, RetrieveAndAnswer, ReviewAnswer, SummarizeDocument
 from pathlib import Path
 
-DATA_DIR = Path("E:/projects/documind/data")
+DATA_DIR = Path(__file__).parent.parent.resolve() / "data"
 
 
 class DocuMindAgent(Role):

@@ -1,5 +1,9 @@
 metagpt>=0.8.0
-streamlit
+fastapi
+uvicorn[standard]
+python-multipart
 python-dotenv
 chromadb
 llama-index-vector-stores-chroma
+pypdf
+streamlit
