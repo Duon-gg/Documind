@@ -1,0 +1,5 @@
+metagpt>=0.8.0
+streamlit
+python-dotenv
+chromadb
+llama-index-vector-stores-chroma

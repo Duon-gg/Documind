@@ -1,0 +1,33 @@
+# Environment
+.env
+documind-env/
+venv/
+__pycache__/
+*.pyc
+
+# Data & Storage
+data/
+storage/
+
+# Docs (keep demo.gif)
+docs/
+!docs/demo.gif
+docs/frames/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# MetaGPT runtime
+workspace/
+logs/
+metagpt/
+agentops.log
+config2.yaml
+
+# Dev tools
+create_demo.py

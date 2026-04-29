@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocuMind — AI Document Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#FF6B2C;--primary-light:#fff0e8;--primary-border:#FFD4B8;
+  --bg-main:#ffffff;--bg-sidebar:#fff8f4;
+  --text-main:#1a1a1a;--text-muted:#888888;
+  --bubble-ai:#f7f7f7;--bubble-ai-border:#f0f0f0;
+  --timer:#FF9D6C;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;color:var(--text-main);background:var(--bg-main)}
+
+/* ── Layout ── */
+.app{display:flex;height:100vh}
+.sidebar{width:260px;min-width:260px;background:var(--bg-sidebar);border-right:1px solid var(--primary-border);display:flex;flex-direction:column;padding:20px;overflow-y:auto}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* ── Sidebar ── */
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+.logo-text{font-size:18px;font-weight:700;color:var(--text-main)}
+.logo-sub{font-size:12px;color:var(--primary);margin-bottom:20px;padding-left:46px}
+
+.section-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+
+.dropzone{border:2px dashed var(--primary-border);border-radius:12px;padding:20px 14px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.dropzone:hover,.dropzone.dragover{border-color:var(--primary);background:var(--primary-light)}
+.dropzone-icon{font-size:28px;margin-bottom:6px}
+.dropzone-text{font-size:12px;color:var(--text-muted);line-height:1.5}
+.dropzone-text b{color:var(--primary)}
+
+.btn-build{width:100%;padding:11px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-build:hover{background:#e55a1f;transform:translateY(-1px)}
+.btn-build:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+.kb-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:16px;font-size:12px;font-weight:500;margin-top:10px}
+.kb-ready{background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-border)}
+.kb-empty{background:#f5f5f5;color:var(--text-muted);border:1px solid #e0e0e0}
+
+.file-list{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.file-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#fff;border:1px solid #f0e8e2;font-size:12px;transition:all .2s}
+.file-item:hover{border-color:var(--primary-border)}
+.file-item .fi-icon{color:var(--primary);font-size:16px;flex-shrink:0}
+.file-item .fi-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .fi-size{color:var(--text-muted);font-size:11px;flex-shrink:0}
+.file-item .fi-del{width:22px;height:22px;border:none;background:transparent;color:#ccc;font-size:14px;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.file-item .fi-del:hover{background:#fee;color:#e53e3e}
+
+.btn-clear{width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;margin-top:8px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-clear:hover{border-color:#e53e3e;color:#e53e3e;background:#fff5f5}
+.btn-clear:disabled{opacity:.4;cursor:not-allowed}
+
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Timer ── */
+.timer{font-family:'Cascadia Code','Fira Code',monospace;font-size:11px;color:var(--timer);margin-left:auto;animation:fadeIn .3s ease}
+.timer-total{font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;color:var(--timer);display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;background:rgba(255,157,108,.08);margin-top:6px;animation:fadeIn .4s ease}
+
+/* ── Main ── */
+.main-header{padding:16px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px}
+.main-header h2{font-size:17px;font-weight:600}
+.doc-badge{background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
+
+.chat-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+
+.msg{display:flex;gap:10px;max-width:85%;animation:fadeIn .3s ease}
+.msg-ai{align-self:flex-start}
+.msg-user{align-self:flex-end;flex-direction:row-reverse}
+
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.avatar-ai{background:var(--primary);color:#fff}
+.avatar-user{background:#e0e0e0;color:#666}
+
+.bubble{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.65;word-break:break-word}
+.bubble-ai{background:var(--bubble-ai);border:1px solid var(--bubble-ai-border);border-top-left-radius:4px}
+.bubble-user{background:var(--primary);color:#fff;border-top-right-radius:4px}
+
+.bubble-ai pre{background:#1e1e2e;color:#e0e0e0;padding:12px;border-radius:8px;overflow-x:auto;font-size:13px;margin:8px 0;font-family:'Cascadia Code','Fira Code',monospace}
+.bubble-ai code{font-family:'Cascadia Code','Fira Code',monospace;font-size:13px}
+.bubble-ai p{margin:6px 0}
+
+.source-tag{display:inline-block;font-size:11px;color:var(--primary);background:var(--primary-light);border:1px solid var(--primary-border);padding:2px 8px;border-radius:6px;margin-top:8px}
+
+.steps{display:flex;flex-direction:column;gap:6px;margin:4px 0}
+.step{padding:8px 12px;border-radius:8px;font-size:13px;background:#fafafa;border:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;transition:all .3s}
+.step.active{background:var(--primary-light);border-color:var(--primary-border)}
+.step.done{opacity:.7}
+.step .step-spinner{width:14px;height:14px;border:2px solid var(--primary-border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+.step .step-text{flex:1}
+
+.welcome{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.welcome h3{font-size:20px;color:var(--text-main);margin-bottom:8px}
+.welcome p{font-size:14px}
+
+/* ── Input Bar ── */
+.input-bar{padding:12px 24px 16px;border-top:1px solid #f0f0f0}
+.input-wrap{display:flex;align-items:center;gap:8px;background:#f7f7f7;border-radius:25px;padding:6px 6px 6px 18px;border:1px solid #e8e8e8;transition:border .2s}
+.input-wrap:focus-within{border-color:var(--primary)}
+.input-wrap input{flex:1;border:none;background:transparent;font-size:14px;font-family:'Inter',sans-serif;outline:none;color:var(--text-main)}
+.input-wrap input::placeholder{color:#bbb}
+.btn-send{width:36px;height:36px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.btn-send:hover{background:#e55a1f;transform:scale(1.05)}
+.btn-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#ccc}
+
+/* ── Resource Monitor ── */
+.rm-panel{position:fixed;top:80px;right:16px;width:220px;background:#1a1a1a;border-radius:12px;z-index:200;box-shadow:0 4px 24px rgba(0,0,0,.4);color:#ccc;font-size:12px;user-select:none}
+.rm-header{display:flex;align-items:center;gap:6px;padding:10px 14px;cursor:grab;border-radius:12px 12px 0 0;transition:background .2s}
+.rm-header:hover{background:#2a2a2a}
+.rm-header.dragging{cursor:grabbing;background:#333}
+.rm-header .rm-drag{color:#555;font-size:14px;line-height:1}
+.rm-header .rm-title{font-size:13px;font-weight:600;color:#fff;flex:1}
+.rm-header .rm-chevron{color:#666;font-size:12px;transition:transform .2s}
+.rm-panel.collapsed .rm-header{border-radius:12px}
+.rm-panel.collapsed .rm-chevron{transform:rotate(-90deg)}
+.rm-body{padding:0 14px 14px;overflow:hidden;transition:max-height .3s ease,padding .3s ease;max-height:400px}
+.rm-panel.collapsed .rm-body{max-height:0;padding:0 14px}
+.rm-section{font-size:11px;color:#888;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+.rm-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+.rm-row .rm-label{color:#aaa}
+.rm-row .rm-val{font-family:'Cascadia Code','Fira Code',monospace;color:var(--primary);font-weight:600}
+.rm-bar{height:6px;background:#333;border-radius:3px;margin-top:6px;overflow:hidden}
+.rm-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.rm-warn{margin-top:6px;padding:4px 8px;border-radius:6px;font-size:11px;text-align:center;animation:fadeIn .3s}
+.mini-stats{font-size:11px;color:#bbb;margin-top:4px;font-family:'Cascadia Code','Fira Code',monospace}
+
+/* ── Rate Limit Card ── */
+.rl-card{background:#fff8f0;border:1px solid var(--primary-border);border-radius:12px;padding:16px;animation:fadeIn .3s ease}
+.rl-header{font-size:15px;font-weight:600;margin-bottom:8px}
+.rl-countdown{font-family:'Cascadia Code','Fira Code',monospace;font-size:22px;color:var(--primary);font-weight:700;margin:8px 0}
+.rl-tip{font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.5}
+.rl-retry{margin-top:10px;padding:8px 16px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:none}
+.rl-retry:hover{background:#e55a1f}
+.rl-retry.show{display:inline-flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo"><div class="logo-icon">D</div><div class="logo-text">DocuMind</div></div>
+    <div class="logo-sub">AI Document Assistant</div>
+
+    <div class="section-label">Tải tài liệu</div>
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon">📄</div>
+      <div class="dropzone-text"><b>Nhấp để tải lên</b> hoặc kéo thả PDF</div>
+      <input type="file" id="fileInput" accept=".pdf" multiple hidden>
+    </div>
+
+    <button class="btn-build" id="btnBuild" onclick="buildKB()">⚡ Build Knowledge Base</button>
+
+    <div id="kbStatus"></div>
+
+    <div class="section-label">Tài liệu</div>
+    <div class="file-list" id="fileList"><div style="font-size:12px;color:var(--text-muted)">Chưa có tài liệu</div></div>
+    <button class="btn-clear" id="btnClear" onclick="clearAll()" style="display:none">🗑️ Xóa tất cả</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="main-header">
+      <h2>Chat với tài liệu</h2>
+      <span class="doc-badge" id="docBadge">0 tài liệu</span>
+    </div>
+
+    <div class="chat-area" id="chatArea">
+      <div class="welcome">
+        <h3>👋 Chào mừng đến DocuMind</h3>
+        <p>Upload PDF và đặt câu hỏi — AI sẽ trả lời dựa trên tài liệu của bạn</p>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <input type="text" id="chatInput" placeholder="Hỏi về tài liệu của bạn..." autocomplete="off">
+        <button class="btn-send" id="btnSend" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resource Monitor -->
+<div class="rm-panel collapsed" id="rmPanel">
+  <div class="rm-header" id="rmHeader">
+    <span class="rm-drag">⠀⠀⠀⠏</span>
+    <span class="rm-title">📊 Monitor</span>
+    <span class="rm-chevron">▼</span>
+  </div>
+  <div class="rm-body" id="rmBody">
+    <div class="rm-section">Request này</div>
+    <div class="rm-row"><span class="rm-label">📥 Prompt</span><span class="rm-val" id="rmPt">—</span></div>
+    <div class="rm-row"><span class="rm-label">📤 Response</span><span class="rm-val" id="rmCt">—</span></div>
+    <div class="rm-row"><span class="rm-label">💰 Total</span><span class="rm-val" id="rmTt">—</span></div>
+    <div class="rm-row"><span class="rm-label">⏱️ Time</span><span class="rm-val" id="rmTime">—</span></div>
+    <div class="rm-section">Session này</div>
+    <div class="rm-row"><span class="rm-label">🔢 Requests</span><span class="rm-val" id="rmReqs">0</span></div>
+    <div class="rm-row"><span class="rm-label">📊 Tokens</span><span class="rm-val" id="rmSess">0</span></div>
+    <div class="rm-row"><span class="rm-label" id="rmLimitIcon">🟢 Groq</span><span class="rm-val" id="rmPct">100%</span></div>
+    <div class="rm-bar"><div class="rm-bar-fill" id="rmBar" style="width:100%;background:var(--primary)"></div></div>
+    <div class="rm-warn" id="rmWarn" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const dropzone=document.getElementById('dropzone'),fileInput=document.getElementById('fileInput'),
+      chatArea=document.getElementById('chatArea'),chatInput=document.getElementById('chatInput'),
+      btnSend=document.getElementById('btnSend'),btnBuild=document.getElementById('btnBuild'),
+      fileList=document.getElementById('fileList'),docBadge=document.getElementById('docBadge'),
+      kbStatus=document.getElementById('kbStatus');
+
+let uploadedFiles=[], kbReady=false, isProcessing=false;
+
+// ── Timer helper ──
+function createTimer(){
+  let t0=performance.now(), iv;
+  const el=document.createElement('span');
+  el.className='timer';
+  el.textContent='⏱️ 0.0s';
+  iv=setInterval(()=>{el.textContent='⏱️ '+((performance.now()-t0)/1000).toFixed(1)+'s'},100);
+  return {el, stop(sec){clearInterval(iv);el.textContent='⏱️ '+(sec!=null?sec.toFixed(1):((performance.now()-t0)/1000).toFixed(1))+'s'}};
+}
+
+// ── Upload ──
+dropzone.addEventListener('click',()=>fileInput.click());
+dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.classList.add('dragover')});
+dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.classList.remove('dragover');handleFiles(e.dataTransfer.files)});
+fileInput.addEventListener('change',e=>handleFiles(e.target.files));
+
+function handleFiles(files){
+  const pdfs=[...files].filter(f=>f.name.endsWith('.pdf'));
+  if(!pdfs.length)return;
+  const fd=new FormData();
+  pdfs.forEach(f=>fd.append('files',f));
+  const tm=createTimer();
+  dropzone.innerHTML='<div class="spinner" style="border-color:var(--primary-border);border-top-color:var(--primary)"></div><div class="dropzone-text" style="margin-top:8px">Đang tải lên...</div>';
+  dropzone.appendChild(tm.el);
+  fetch('/upload',{method:'POST',body:fd})
+    .then(r=>r.json()).then(d=>{
+      tm.stop(d.elapsed);
+      uploadedFiles=d.files||[];
+      renderFiles();
+      dropzone.innerHTML='<div class="dropzone-icon">✅</div><div class="dropzone-text">Tải lên thành công!</div>';
+      setTimeout(()=>{dropzone.innerHTML='<div class="dropzone-icon">📄</div><div class="dropzone-text"><b>Nhấp để tải lên</b> hoặc kéo thả PDF</div>'},2000);
+    }).catch(()=>{tm.stop();dropzone.innerHTML='<div class="dropzone-icon">❌</div><div class="dropzone-text">Lỗi tải lên</div>'});
+}
+
+function renderFiles(){
+  const btnClear=document.getElementById('btnClear');
+  if(!uploadedFiles.length){
+    fileList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">Chưa có tài liệu</div>';
+    docBadge.textContent='0 tài liệu';
+    btnClear.style.display='none';
+    return;
+  }
+  fileList.innerHTML=uploadedFiles.map(f=>
+    `<div class="file-item"><span class="fi-icon">📄</span><span class="fi-name" title="${f.name}">${f.name}</span><span class="fi-size">${f.size}</span><button class="fi-del" onclick="deleteFile('${f.name.replace(/'/g,"\\'")}')">✕</button></div>`
+  ).join('');
+  docBadge.textContent=uploadedFiles.length+' tài liệu';
+  btnClear.style.display='flex';
+}
+
+// ── Build KB ──
+let buildTimer=null;
+function buildKB(){
+  btnBuild.disabled=true;
+  buildTimer=createTimer();
+  btnBuild.innerHTML='';
+  btnBuild.appendChild(Object.assign(document.createElement('span'),{className:'spinner'}));
+  btnBuild.append(' Đang build... ');
+  btnBuild.appendChild(buildTimer.el);
+
+  fetch('/build',{method:'POST'}).then(r=>r.json()).then(d=>{
+    buildTimer.stop(d.elapsed);
+    if(d.status==='ok'){
+      kbReady=true;
+      kbStatus.innerHTML=`<div class="kb-badge kb-ready">● KB sẵn sàng — ${d.elapsed}s</div>`;
+    } else {
+      kbStatus.innerHTML='<div class="kb-badge kb-empty">✗ Lỗi: '+d.error+'</div>';
+    }
+  }).catch(()=>{
+    if(buildTimer)buildTimer.stop();
+    kbStatus.innerHTML='<div class="kb-badge kb-empty">✗ Lỗi kết nối</div>';
+  }).finally(()=>{btnBuild.disabled=false;btnBuild.innerHTML='⚡ Build Knowledge Base'});
+}
+
+// ── Chat ──
+chatInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
+
+function sendMessage(){
+  const q=chatInput.value.trim();
+  if(!q||isProcessing)return;
+  const w=chatArea.querySelector('.welcome');if(w)w.remove();
+  addMsg('user',q);
+  chatInput.value='';isProcessing=true;btnSend.disabled=true;
+
+  // Steps with individual timers
+  const stepsEl=document.createElement('div');stepsEl.className='msg msg-ai';
+  stepsEl.innerHTML=`<div class="avatar avatar-ai">D</div><div class="bubble bubble-ai"><div class="steps" id="liveSteps"></div></div>`;
+  chatArea.appendChild(stepsEl);scroll();
+
+  const stepTexts=['🔍 Phân tích câu hỏi...','📚 Tìm kiếm tài liệu...','✍️ Tổng hợp câu trả lời...'];
+  const stepsBox=document.getElementById('liveSteps');
+  const stepTimers=[];
+  let si=0;
+
+  function showStep(){
+    if(si>=stepTexts.length)return;
+    // Finish previous step
+    if(si>0&&stepTimers[si-1]){
+      const prev=stepsBox.children[si-1];
+      if(prev){
+        prev.classList.remove('active');prev.classList.add('done');
+        const sp=prev.querySelector('.step-spinner');if(sp)sp.textContent='✅';
+        stepTimers[si-1].stop();
+      }
+    }
+    // Create new step
+    const tm=createTimer();
+    stepTimers[si]=tm;
+    const s=document.createElement('div');s.className='step active';
+    const spinner=document.createElement('span');spinner.className='step-spinner';
+    const txt=document.createElement('span');txt.className='step-text';txt.textContent=stepTexts[si];
+    s.appendChild(spinner);s.appendChild(txt);s.appendChild(tm.el);
+    stepsBox.appendChild(s);scroll();si++;
+  }
+
+  showStep();
+  const stepIv1=setTimeout(()=>showStep(),1200);
+  const stepIv2=setTimeout(()=>showStep(),2400);
+
+  const chatStartTime=performance.now();
+
+  fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})})
+    .then(r=>{
+      if(r.status===429) return r.json().then(d=>({...d,_rateLimit:true}));
+      return r.json();
+    }).then(d=>{
+      clearTimeout(stepIv1);clearTimeout(stepIv2);
+      stepsEl.remove();
+      if(d._rateLimit||d.error==='rate_limit'){
+        showRateLimitCard(d,q);
+      } else if(d.error){
+        addMsg('ai','❌ '+d.error);
+      } else {
+        const totalSec=d.elapsed||((performance.now()-chatStartTime)/1000);
+        addMsg('ai',d.answer,d.query_type,totalSec,d.usage);
+        if(d.usage)updateMonitor(d.usage,totalSec);
+      }
+    }).catch(()=>{stepsEl.remove();addMsg('ai','❌ Lỗi kết nối server')})
+    .finally(()=>{isProcessing=false;btnSend.disabled=false;chatInput.focus()});
+}
+
+function addMsg(role,text,tag,elapsed,usage){
+  const d=document.createElement('div');
+  d.className='msg msg-'+(role==='user'?'user':'ai');
+  const av=role==='user'?'<div class="avatar avatar-user">T</div>':'<div class="avatar avatar-ai">D</div>';
+  const cls=role==='user'?'bubble-user':'bubble-ai';
+  let html=formatMd(text);
+  if(tag&&role!=='user')html+=`<div class="source-tag">📎 ${tag}</div>`;
+  if(elapsed!=null&&role!=='user'){
+    let statsLine=`⚡ ${Number(elapsed).toFixed(1)}s`;
+    if(usage)statsLine+=` · 💰 ${fmtNum(usage.total_tokens)} tokens`;
+    html+=`<div class="mini-stats">${statsLine}</div>`;
+  }
+  d.innerHTML=`${av}<div class="bubble ${cls}">${html}</div>`;
+  chatArea.appendChild(d);scroll();
+}
+function fmtNum(n){return n>=1000?(n/1000).toFixed(1)+'k':String(n)}
+
+function formatMd(t){
+  t=t.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>'<pre><code>'+esc(code.trim())+'</code></pre>');
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  t=t.replace(/\n{2,}/g,'</p><p>');
+  t=t.replace(/\n/g,'<br>');
+  return'<p>'+t+'</p>';
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function scroll(){chatArea.scrollTop=chatArea.scrollHeight}
+
+// ── Rate Limit Card ──
+function parseRetrySeconds(str){
+  if(!str||str==='unknown')return 60;
+  let sec=0;
+  const mm=str.match(/(\d+)m/);if(mm)sec+=parseInt(mm[1])*60;
+  const ss=str.match(/([\d.]+)s/);if(ss)sec+=Math.ceil(parseFloat(ss[1]));
+  return sec||60;
+}
+function showRateLimitCard(data,originalQ){
+  let remaining=parseRetrySeconds(data.retry_after);
+  const card=document.createElement('div');card.className='msg msg-ai';
+  const inner=document.createElement('div');inner.className='rl-card';
+  inner.innerHTML=`
+    <div class="rl-header">⚠️ ${data.message||'Hết quota Groq!'}</div>
+    <div>Thử lại sau:</div>
+    <div class="rl-countdown" id="rlCountdown"></div>
+    <div class="rl-tip">💡 ${data.tip||'Dùng câu hỏi ngắn hơn để tiết kiệm token'}</div>
+    <button class="rl-retry" id="rlRetry" onclick="this.closest('.msg').remove();chatInput.value='${originalQ.replace(/'/g,"\\'")}';sendMessage()">🔄 Thử lại</button>
+  `;
+  card.innerHTML='<div class="avatar avatar-ai">D</div>';
+  card.appendChild(inner);
+  chatArea.appendChild(card);scroll();
+
+  const cdEl=document.getElementById('rlCountdown');
+  const retryBtn=document.getElementById('rlRetry');
+  function tick(){
+    if(remaining<=0){
+      cdEl.textContent='✅ Sẵn sàng!';
+      retryBtn.classList.add('show');
+      return;
+    }
+    const m=Math.floor(remaining/60),s=remaining%60;
+    cdEl.textContent=`⏱️ ${m}m ${s<10?'0':''}${s}s`;
+    remaining--;
+    setTimeout(tick,1000);
+  }
+  tick();
+}
+
+// ── Delete ──
+function deleteFile(name){
+  if(!confirm('Xóa file "'+name+'"?\nKnowledge Base sẽ cần rebuild.'))return;
+  const tm=createTimer();
+  // Find file item and append timer
+  const items=fileList.querySelectorAll('.file-item');
+  items.forEach(item=>{if(item.querySelector('.fi-name')?.textContent===name)item.appendChild(tm.el)});
+
+  fetch('/delete/'+encodeURIComponent(name),{method:'DELETE'})
+    .then(r=>r.json()).then(d=>{
+      tm.stop(d.elapsed);
+      if(d.status==='deleted'){
+        uploadedFiles=uploadedFiles.filter(f=>f.name!==name);
+        renderFiles();
+        kbReady=false;
+        kbStatus.innerHTML='<div class="kb-badge kb-empty">⚠️ KB cần rebuild</div>';
+        if(uploadedFiles.length>0){buildKB()}
+      }
+    }).catch(()=>{tm.stop();alert('Lỗi kết nối server')});
+}
+
+function clearAll(){
+  if(!confirm('Xóa tất cả tài liệu?\nHành động này không thể hoàn tác.'))return;
+  fetch('/clear',{method:'DELETE'})
+    .then(r=>r.json()).then(d=>{
+      if(d.status==='cleared'){
+        uploadedFiles=[];
+        renderFiles();
+        kbReady=false;
+        kbStatus.innerHTML='<div class="kb-badge kb-empty">○ Chưa xây dựng KB</div>';
+        chatArea.innerHTML='<div class="welcome"><h3>👋 Chào mừng đến DocuMind</h3><p>Upload PDF và đặt câu hỏi — AI sẽ trả lời dựa trên tài liệu của bạn</p></div>';
+      }
+    }).catch(()=>alert('Lỗi kết nối server'));
+}
+
+// ── Resource Monitor ──
+function updateMonitor(u,elapsed){
+  if(!u)return;
+  document.getElementById('rmPt').textContent=fmtNum(u.prompt_tokens)+' tok';
+  document.getElementById('rmCt').textContent=fmtNum(u.completion_tokens)+' tok';
+  document.getElementById('rmTt').textContent=fmtNum(u.total_tokens)+' tok';
+  document.getElementById('rmTime').textContent=(elapsed||0).toFixed(1)+'s';
+  document.getElementById('rmReqs').textContent=u.total_requests;
+  document.getElementById('rmSess').textContent=fmtNum(u.total_session_tokens);
+  const pct=u.remaining_percent||0;
+  document.getElementById('rmPct').textContent=pct.toFixed(1)+'%';
+  const bar=document.getElementById('rmBar');
+  bar.style.width=pct+'%';
+  const warn=document.getElementById('rmWarn');
+  const icon=document.getElementById('rmLimitIcon');
+  if(pct>=80){bar.style.background='#48bb78';icon.textContent='🟢 Groq';warn.style.display='none'}
+  else if(pct>=50){bar.style.background='#ecc94b';icon.textContent='🟡 Groq';warn.style.display='none'}
+  else if(pct>=20){bar.style.background='#ed8936';icon.textContent='🟡 Groq';warn.style.display='block';warn.style.background='#4a3500';warn.style.color='#ecc94b';warn.textContent='⚠️ Quota đang thấp'}
+  else{bar.style.background='#e53e3e';icon.textContent='🔴 Groq';warn.style.display='block';warn.style.background='#4a0000';warn.style.color='#fc8181';warn.textContent='⚠️ Sắp hết quota Groq!'}
+}
+
+// ── Init: load status ──
+fetch('/status').then(r=>r.json()).then(d=>{
+  uploadedFiles=d.files||[];renderFiles();
+  if(d.kb_ready){kbReady=true;kbStatus.innerHTML='<div class="kb-badge kb-ready">● KB sẵn sàng</div>'}
+  else{kbStatus.innerHTML='<div class="kb-badge kb-empty">○ Chưa xây dựng KB</div>'}
+}).catch(()=>{});
+fetch('/stats').then(r=>r.json()).then(d=>{if(d.total_requests>0)updateMonitor({prompt_tokens:0,completion_tokens:0,total_tokens:0,total_session_tokens:d.total_tokens,total_requests:d.total_requests,remaining_percent:d.remaining_percent},0)}).catch(()=>{});
+
+// ── Draggable Resource Monitor ──
+(function(){
+  const panel=document.getElementById('rmPanel');
+  const header=document.getElementById('rmHeader');
+  let isDragging=false,hasDragged=false,offX=0,offY=0;
+
+  header.addEventListener('mousedown',e=>{
+    isDragging=true;hasDragged=false;
+    offX=e.clientX-panel.getBoundingClientRect().left;
+    offY=e.clientY-panel.getBoundingClientRect().top;
+    header.classList.add('dragging');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    hasDragged=true;
+    let x=e.clientX-offX, y=e.clientY-offY;
+    const maxX=window.innerWidth-panel.offsetWidth;
+    const maxY=window.innerHeight-panel.offsetHeight;
+    x=Math.max(0,Math.min(x,maxX));
+    y=Math.max(0,Math.min(y,maxY));
+    panel.style.left=x+'px';panel.style.top=y+'px';
+    panel.style.right='auto';panel.style.bottom='auto';
+  });
+  document.addEventListener('mouseup',()=>{
+    if(!isDragging)return;
+    isDragging=false;header.classList.remove('dragging');
+  });
+  // Click header (without drag) → toggle collapse
+  header.addEventListener('click',()=>{
+    if(hasDragged)return;
+    panel.classList.toggle('collapsed');
+  });
+})();
+</script>
+</body>
+</html>
