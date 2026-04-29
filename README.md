@@ -194,6 +194,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 <div align="center">
 
-Built with ❤️ using MetaGPT + Groq + ChromaDB
+Built with using MetaGPT + Groq + ChromaDB
 
 </div>
